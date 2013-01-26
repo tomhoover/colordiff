@@ -264,10 +264,10 @@ if ($colormode eq "yes") {
     $color_patch = 0;
 }
 
-# If output is to a file, switch off colours, unless 'color_patch' is set, if
-# --color=no is specified, force disable colours too
+# If output is to a file, switch off colours, unless 'color_patch' is set,
+# which might be due to --color=no being specified
 # Relates to http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=378563
-if (((-f STDOUT) && ($color_patch == 0)) || ($colormode eq "no")) {
+if ((-f STDOUT) && ($color_patch == 0)) {
     $plain_text  = '';
     $file_old    = '';
     $file_new    = '';
