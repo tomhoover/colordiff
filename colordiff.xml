@@ -94,6 +94,16 @@ $ diff -u file1 file2 | colordiff | less -R
 
 </para>
 
+<para>If you want to force disable colour escape sequences (for example
+pipe the output to <command>patch</command>), you can use option 
+'--color=no' to do so:
+
+<screen>
+$ diff -u file1 file2 | colordiff --color=no | patch -p0 -d another-working-dir
+</screen>
+
+</para>
+
 <para>If you have <command>wdiff</command> installed, colordiff will correctly
 colourise the added and removed text, provided that the '-n' option is given to
 <command>wdiff</command>:
