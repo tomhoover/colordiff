@@ -161,14 +161,14 @@ sub detect_diff_type {
 my $enable_verifymode;
 my $specified_difftype;
 my $enable_fakeexitcode;
-my $colormode = "auto";
+my $color_mode = "auto";
 GetOptions(
     # --enable-verifymode option is for testing behaviour of colordiff
     # against standard test diffs
     "verifymode" => \$enable_verifymode,
     "fakeexitcode" => \$enable_fakeexitcode,
     "difftype=s" => \$specified_difftype,
-    "color=s" => \$colormode
+    "color=s" => \$color_mode
     # TODO - check that specified type is valid, issue warning if not
 );
 
@@ -258,9 +258,9 @@ foreach $config_file (@config_files) {
 }
 
 # --color=yes and --color=no will override the color_patches setting
-if ($colormode eq "yes") {
+if ($color_mode eq "yes") {
     $color_patch = 1;
-} elsif ($colormode eq "no") {
+} elsif ($color_mode eq "no") {
     $color_patch = 0;
 }
 
