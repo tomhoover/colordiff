@@ -108,54 +108,52 @@ sub check_for_file_arguments {
 
 sub detect_diff_type {
     # Two parameters:
-    #    $isref       is reference to @inputstream
+    #    $record      is line in which a diff format has to be detected
     #    $allow_diffy is flag indicating whether diffy is a
     #                   permitted diff type
-    my $isref = shift;
+    my $record = shift;
     my $allow_diffy = shift;
-    my @is = @$isref;
 
     # This may not be perfect - should identify most reasonably
     # formatted diffs and patches
 
-    foreach my $record (@is) {
-        # Unified diffs are the only flavour having '+++ ' or '--- '
-        # at the start of a line
-        if ($record =~ /^(\+\+\+ |--- |@@ )/) {
-            return 'diffu';
-        }
-        # Context diffs are the only flavour having '***'
-        # at the start of a line
-        elsif ($record =~ /^\*\*\*/) {
-            return 'diffc';
-        }
-        # Plain diffs have NcN, NdN and NaN etc.
-        elsif ($record =~ /^[0-9,]+[acd][0-9,]+$/) {
-            return 'diff';
-        }
-        # FIXME - This is not very specific, since the regex matches could
-        # easily match non-diff output.
-        # However, given that we have not yet matched any of the *other* diff
-        # types, this might be good enough
-        #
-        # Only pick diffy if our flag parameter indicates so
-        elsif ( ($allow_diffy == 1) && ($record =~ /(\s\|\s|\s<$|\s>\s)/) ) {
-            return 'diffy';
-        }
-        # wdiff deleted/added patterns
-        # should almost always be pairwise?
-        elsif ($record =~ /\[-.*?-\]/s
-                || $record =~ /\{\+.*?\+\}/s) {
-            return 'wdiff';
-        }
-        # FIXME - This is a bit risky, but if we haven't matched any other
-        # diff type by this stage, this line usually indicates we have
-        # debdiff output
-        elsif ($record =~ /^Control files: lines which differ/) {
-            return 'debdiff';
-        }
+    # Unified diffs are the only flavour having '+++ ' or '--- '
+    # at the start of a line
+    if ($record =~ /^(\+\+\+ |--- |@@ )/) {
+        return 'diffu';
     }
-    $diff_type = 'unknown';
+    # Context diffs are the only flavour having '***'
+    # at the start of a line
+    elsif ($record =~ /^\*\*\*/) {
+        return 'diffc';
+    }
+    # Plain diffs have NcN, NdN and NaN etc.
+    elsif ($record =~ /^[0-9,]+[acd][0-9,]+$/) {
+        return 'diff';
+    }
+    # FIXME - This is not very specific, since the regex matches could
+    # easily match non-diff output.
+    # However, given that we have not yet matched any of the *other* diff
+    # types, this might be good enough
+    #
+    # Only pick diffy if our flag parameter indicates so
+    elsif ( ($allow_diffy == 1) && ($record =~ /(\s\|\s|\s<$|\s>\s)/) ) {
+        return 'diffy';
+    }
+    # wdiff deleted/added patterns
+    # should almost always be pairwise?
+    elsif ($record =~ /\[-.*?-\]/s
+            || $record =~ /\{\+.*?\+\}/s) {
+        return 'wdiff';
+    }
+    # FIXME - This is a bit risky, but if we haven't matched any other
+    # diff type by this stage, this line usually indicates we have
+    # debdiff output
+    elsif ($record =~ /^Control files: lines which differ/) {
+        return 'debdiff';
+    }
+
+    return 'unknown';
 }
 
 my $enable_verifymode;
@@ -315,7 +313,7 @@ else {
     # Detect diff type, diffy is permitted
     while (<STDIN>) {
         push @inputstream, $_;
-        $diff_type = detect_diff_type(\@inputstream, 1);
+        $diff_type = detect_diff_type($_, 1);
         last if $diff_type ne 'unknown';
     }
 }
@@ -381,7 +379,10 @@ if ($diff_type eq 'diffy') {
     # as a possible outcome
     if ($diffy_sep_col == 0) {
         # Detect diff type, diffy is NOT permitted
-        $diff_type = detect_diff_type(\@inputstream, 0);
+        foreach (@inputstream) {
+            $diff_type = detect_diff_type($_, 0);
+            last if $diff_type ne 'unknown';
+        }
     }
 }
 # ------------------------------------------------------------------------------
