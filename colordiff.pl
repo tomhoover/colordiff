@@ -295,18 +295,11 @@ if (check_for_file_arguments (@ARGV)) {
 
 my @inputstream;
 
-my $exitcode = 0;
+my $pid;
 if ($operating_methodology == 1) {
-    # Run diff and then post-process the output
-    my $pid = open2(\*INPUTSTREAM, undef, "$diff_cmd", @ARGV);
-    @inputstream = <INPUTSTREAM>;
-    close INPUTSTREAM;
-    waitpid $pid, 0;
-    $exitcode=$? >> 8;
-}
-else {
-    # No need to call diff, just process standard input
-    @inputstream = <STDIN>;
+    # Feed stdin of colordiff with output from the diff program
+    close(STDIN);
+    $pid = open2(\*STDIN, undef, "$diff_cmd", @ARGV);
 }
 
 # Input stream has been read - need to examine it
@@ -320,7 +313,11 @@ if (defined $specified_difftype) {
 }
 else {
     # Detect diff type, diffy is permitted
-    $diff_type = detect_diff_type(\@inputstream, 1);
+    while (<STDIN>) {
+        push @inputstream, $_;
+        $diff_type = detect_diff_type(\@inputstream, 1);
+        last if $diff_type ne 'unknown';
+    }
 }
 
 my $inside_file_old = 1;
@@ -340,6 +337,12 @@ my $mostlikely_sum = 0;
 if ($diff_type eq 'diffy') {
     # Not very elegant, but does the job
     # Unfortunately requires parsing the input stream multiple times
+
+    # for determining the marker position, the input needs to be fully read
+    while (<STDIN>) {
+        push @inputstream, $_;
+    }
+
     foreach (@inputstream) {
         $record = expand_tabs_to_spaces $_;
         $longest_record = length ($record) if (length ($record) > $longest_record);
@@ -383,7 +386,7 @@ if ($diff_type eq 'diffy') {
 }
 # ------------------------------------------------------------------------------
 
-foreach (@inputstream) {
+while (defined( $_ = @inputstream ? shift @inputstream : <STDIN> )) {
     if ($diff_type eq 'diff') {
         if (/^</) {
             print "$file_old";
@@ -501,6 +504,12 @@ foreach (@inputstream) {
     }
     s/$/$colour{off}/;
     print "$_";
+}
+
+my $exitcode = 0;
+if ($operating_methodology == 1) {
+    waitpid $pid, 0;
+    $exitcode=$? >> 8;
 }
 if (defined $enable_fakeexitcode) {
     exit 0;
