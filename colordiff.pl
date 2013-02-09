@@ -343,8 +343,9 @@ if ($diff_type eq 'diffy') {
     (@checkbuffer, @inputstream) = (@inputstream, @checkbuffer);
 
     while (@checkbuffer) {
-        $_ = expand_tabs_to_spaces shift @checkbuffer;
+        $_ = shift @checkbuffer;
         push @inputstream, $_;
+        $_ = expand_tabs_to_spaces $_;
 
         if (length ($_) > $longest_record) {
             my $i = $longest_record + 1;
@@ -359,6 +360,7 @@ if ($diff_type eq 'diffy') {
 
         for (my $i = 0 ; $i < (length ($_) - 2) ; $i++) {
             next if ($separator_col{$i} == 0);
+            next if ($_ =~ /^(Index: |={4,}|RCS file: |retrieving |diff )/);
             my $subsub = substr ($_, $i, 2);
             if ($subsub !~ / [ (|<>]/) {
                 $separator_col{$i} = 0;
@@ -481,6 +483,7 @@ while (defined( $_ = @inputstream ? shift @inputstream : <STDIN> )) {
     # Works with previously-identified column containing the diff-y
     # separator characters
     elsif ($diff_type eq 'diffy') {
+        $_ = expand_tabs_to_spaces $_;
         if (length ($_) > ($diffy_sep_col + 2)) {
             my $sepchars = substr ($_, $diffy_sep_col, 2);
             if ($sepchars eq ' <') {
