@@ -338,6 +338,7 @@ if ($diff_type eq 'diffy') {
     my $longest_record = -1;
     my %separator_col  = ();
     my %candidate_col  = ();
+    my $possible_cols = 0;
     my @checkbuffer;
 
     (@checkbuffer, @inputstream) = (@inputstream, @checkbuffer);
@@ -364,14 +365,27 @@ if ($diff_type eq 'diffy') {
             my $subsub = substr ($_, $i, 2);
             if ($subsub !~ / [ (|<>]/) {
                 $separator_col{$i} = 0;
+                if ($candidate_col{$i} > 0) {
+                    $possible_cols--;
+                }
             }
             if ($subsub =~ / [|<>]/) {
                 $candidate_col{$i}++;
+                if ($candidate_col{$i} == 1) {
+                    $possible_cols++;
+                }
             }
         }
 
-        if ( !@checkbuffer and defined ($_ = <STDIN>) ) {
-            push @checkbuffer, $_;
+        if ( !@checkbuffer ) {
+            if (! (defined $specified_difftype) and
+                $possible_cols == 0 && detect_diff_type($_, 0) ne 'unknown') {
+                $diff_type = detect_diff_type($_, 0);
+                last;
+            }
+            if (defined ($_ = <STDIN>)) {
+                push @checkbuffer, $_;
+            }
         }
     }
 
