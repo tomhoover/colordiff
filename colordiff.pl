@@ -304,10 +304,13 @@ if ($operating_methodology == 1) {
 # to determine type of diff we have.
 
 my $record;
-my $longest_record = 0;
 
 if (defined $specified_difftype) {
     $diff_type = $specified_difftype;
+    # diffy needs at least one line to look at
+    if ($diff_type eq 'diffy' and ($_ = <STDIN>)) {
+        push @inputstream, $_;
+    }
 }
 else {
     # Detect diff type, diffy is permitted
@@ -326,34 +329,35 @@ my $inside_file_old = 1;
 # three columns where the first and third always consist of spaces and the
 # second consists only of spaces, '<', '>' and '|'
 # This is not a 100% certain match, but should be good enough
-
-my %separator_col  = ();
-my %candidate_col  = ();
 my $diffy_sep_col  = 0;
 my $mostlikely_sum = 0;
 
 if ($diff_type eq 'diffy') {
     # Not very elegant, but does the job
-    # Unfortunately requires parsing the input stream multiple times
 
-    # for determining the marker position, the input needs to be fully read
-    while (<STDIN>) {
+    my $longest_record = -1;
+    my %separator_col  = ();
+    my %candidate_col  = ();
+    my @checkbuffer;
+
+    (@checkbuffer, @inputstream) = (@inputstream, @checkbuffer);
+
+    while (@checkbuffer) {
+        $_ = expand_tabs_to_spaces shift @checkbuffer;
         push @inputstream, $_;
-    }
 
-    foreach (@inputstream) {
-        $record = expand_tabs_to_spaces $_;
-        $longest_record = length ($record) if (length ($record) > $longest_record);
-    }
-    for (my $i = 0 ; $i <= $longest_record ; $i++) {
-        $separator_col{$i} = 1;
-        $candidate_col{$i} = 0;
-    }
+        if (length ($_) > $longest_record) {
+            my $i = $longest_record + 1;
 
-    foreach (@inputstream) {
-        $_ = expand_tabs_to_spaces $_;
+            $longest_record = length ($_);
+            while ($i <= $longest_record) {
+                $separator_col{$i} = 1;
+                $candidate_col{$i} = 0;
+                $i++;
+            }
+        }
+
         for (my $i = 0 ; $i < (length ($_) - 2) ; $i++) {
-            next if (!defined $separator_col{$i});
             next if ($separator_col{$i} == 0);
             my $subsub = substr ($_, $i, 2);
             if ($subsub !~ / [ (|<>]/) {
@@ -362,6 +366,10 @@ if ($diff_type eq 'diffy') {
             if ($subsub =~ / [|<>]/) {
                 $candidate_col{$i}++;
             }
+        }
+
+        if ( !@checkbuffer and defined ($_ = <STDIN>) ) {
+            push @checkbuffer, $_;
         }
     }
 
