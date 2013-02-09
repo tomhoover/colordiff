@@ -356,7 +356,7 @@ if ($diff_type eq 'diffy') {
             next if (!defined $separator_col{$i});
             next if ($separator_col{$i} == 0);
             my $subsub = substr ($_, $i, 2);
-            if ($subsub !~ / [ |<>]/) {
+            if ($subsub !~ / [ (|<>]/) {
                 $separator_col{$i} = 0;
             }
             if ($subsub =~ / [|<>]/) {
