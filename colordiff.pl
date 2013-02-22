@@ -91,7 +91,7 @@ sub check_for_file_arguments {
             $ddash = 1;
             next;
         }
-        if ($ddash) {
+        if ($ddash || $arg eq "-") {
             $nonopts++;
             next;
         }
