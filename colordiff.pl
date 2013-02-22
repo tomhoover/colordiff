@@ -303,6 +303,7 @@ if ($operating_methodology == 1) {
 # Input stream has been read - need to examine it
 # to determine type of diff we have.
 
+my $lastline;
 my $record;
 
 if (defined $specified_difftype) {
@@ -311,6 +312,7 @@ if (defined $specified_difftype) {
     if ($diff_type eq 'diffy' and ($_ = <STDIN>)) {
         push @inputstream, $_;
     }
+    $lastline = $_;
 }
 else {
     # Detect diff type, diffy is permitted
@@ -319,6 +321,7 @@ else {
         $diff_type = detect_diff_type($_, 1);
         last if $diff_type ne 'unknown';
     }
+    $lastline = $_;
 }
 
 my $inside_file_old = 1;
@@ -386,6 +389,7 @@ if ($diff_type eq 'diffy') {
             if (defined ($_ = <STDIN>)) {
                 push @checkbuffer, $_;
             }
+            $lastline = $_;
         }
     }
 
@@ -411,7 +415,7 @@ if ($diff_type eq 'diffy') {
 }
 # ------------------------------------------------------------------------------
 
-while (defined( $_ = @inputstream ? shift @inputstream : <STDIN> )) {
+while (defined( $_ = @inputstream ? shift @inputstream : ($lastline and <STDIN>) )) {
     if ($diff_type eq 'diff') {
         if (/^</) {
             print "$file_old";
