@@ -5,7 +5,7 @@
 # ColorDiff - a wrapper/replacment for 'diff' producing                #
 #             colourful output                                         #
 #                                                                      #
-# Copyright (C)2002-2012 Dave Ewart (davee@sungate.co.uk)              #
+# Copyright (C)2002-2013 Dave Ewart (davee@sungate.co.uk)              #
 #                                                                      #
 ########################################################################
 #                                                                      #
@@ -25,11 +25,11 @@ use strict;
 use Getopt::Long qw(:config pass_through no_auto_abbrev);
 
 my $app_name     = 'colordiff';
-my $version      = '1.0.13';
+my $version      = '1.0.14';
 my $author       = 'Dave Ewart';
 my $author_email = 'davee@sungate.co.uk';
 my $app_www      = 'http://www.colordiff.org/';
-my $copyright    = '(C)2002-2012';
+my $copyright    = '(C)2002-2013';
 my $show_banner  = 1;
 my $color_patch  = 0;
 my $diff_cmd     = "diff";
