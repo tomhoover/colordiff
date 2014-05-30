@@ -25,11 +25,11 @@ use strict;
 use Getopt::Long qw(:config pass_through no_auto_abbrev);
 
 my $app_name     = 'colordiff';
-my $version      = '1.0.14';
+my $version      = '1.0.14beta';
 my $author       = 'Dave Ewart';
 my $author_email = 'davee@sungate.co.uk';
 my $app_www      = 'http://www.colordiff.org/';
-my $copyright    = '(C)2002-2013';
+my $copyright    = '(C)2002-2014';
 my $show_banner  = 1;
 my $color_patch  = 0;
 my $diff_cmd     = "diff";
@@ -421,6 +421,10 @@ if ($diff_type eq 'diffy') {
 # ------------------------------------------------------------------------------
 
 while (defined( $_ = @inputstream ? shift @inputstream : ($lastline and <$inputhandle>) )) {
+    if (/^Binary files (.*) and (.*) differ$/) {
+        print "Binary files $file_old$1$plain_text and $file_new$2$plain_text differ\n";
+        next;
+    }
     if ($diff_type eq 'diff') {
         if (/^</) {
             print "$file_old";
