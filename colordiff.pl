@@ -218,7 +218,7 @@ foreach $config_file (@config_files) {
                     $colourval = "\033[0;3${value}m";
                 }
                 elsif( $value < 15 ) {
-                    $colourval = "\033[0;9${value}m";
+                    $colourval = "\033[0;9" . (${value} - 8) . "m";
                 }
                 else {
                     $colourval = "\033[0;38;5;${value}m";
